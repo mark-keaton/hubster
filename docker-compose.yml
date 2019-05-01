@@ -4,14 +4,20 @@ services:
   hubster:
     build: .
     volumes:
-      - .:/opt/services/djangoapp/src
-    ports:
-      - 8000:8000
+      - .:/opt/services/hubster/src
+    networks:
+      - nginx_network
   nginx:
     image: nginx
     ports:
       - 8000:80
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
-    depends_on:  # <-- wait for djangoapp to be "ready" before starting this service
-      - djangoapp
+    depends_on:
+      - hubster
+    networks:
+      - nginx_network
+
+networks:  # <-- and here
+  nginx_network:
+    driver: bridge
