@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  hubster:
+    build: .
+    volumes:
+      - .:/opt/services/djangoapp/src
+    ports:
+      - 8000:8000
+  nginx:
+    image: nginx
+    ports:
+      - 8000:80
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:  # <-- wait for djangoapp to be "ready" before starting this service
+      - djangoapp
