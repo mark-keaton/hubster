@@ -1,3 +1,13 @@
-from django.shortcuts import render
+from rest_framework import viewsets
 
-# Create your views here.
+from hubster.models import GithubUser
+from hubster.serializers import GithubUserSerializer
+
+
+class GithubUserViewSet(viewsets.ModelViewSet):
+    """
+    View Github users.
+    """
+
+    queryset = GithubUser.objects.all()
+    serializer_class = GithubUserSerializer

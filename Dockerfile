@@ -1,6 +1,6 @@
 FROM python:3.7-alpine
 
-RUN apk add build-base linux-headers
+RUN apk add build-base linux-headers postgresql-dev
 
 RUN mkdir -p /opt/services/hubster/src
 WORKDIR /opt/services/hubster/src
