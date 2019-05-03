@@ -4,6 +4,7 @@ from rest_framework import routers
 from hubster import views
 
 router = routers.DefaultRouter()
+router.register(r"repos", views.GithubRepoViewSet)
 router.register(r"users", views.GithubUserViewSet)
 
 urlpatterns = [path("", include(router.urls))]

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from hubster.models import GithubUser
-from hubster.serializers import GithubUserSerializer
+from hubster.models import GithubRepo, GithubUser
+from hubster.serializers import GithubRepoSerializer, GithubUserSerializer
 
 
 class GithubUserViewSet(viewsets.ModelViewSet):
@@ -11,3 +11,13 @@ class GithubUserViewSet(viewsets.ModelViewSet):
 
     queryset = GithubUser.objects.all()
     serializer_class = GithubUserSerializer
+
+
+class GithubRepoViewSet(viewsets.ModelViewSet):
+    """
+    View Github repos.
+    """
+
+    queryset = GithubRepo.objects.all()
+    serializer_class = GithubRepoSerializer
+
