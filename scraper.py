@@ -1,7 +1,25 @@
+#!/usr/bin/env python
+
+import aiohttp
 import argparse
+import asyncio
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hubster.settings")
+django.setup()
+
+from hubster.serializers import GithubRepoSerializerWithId
 
 
-def main() -> None:
+async def scrape(concurrency, buffer, quantity) -> None:
+    async with aiohttp.ClientSession() as session:
+        async with session.get("https://api.github.com/events") as resp:
+            print(resp.status)
+            print(await resp.text())
+
+
+async def main() -> None:
     parser = argparse.ArgumentParser(description="Hubster Github scraper")
 
     parser.add_argument(
@@ -18,7 +36,7 @@ def main() -> None:
         "--buffer",
         action="store",
         dest="buffer",
-        default=100,
+        default=20,
         type=int,
         help="Number of items to queue before writing to the database",
     )
@@ -32,9 +50,11 @@ def main() -> None:
         help="Total number of repos to scrape before quitting",
     )
 
-    print(parser.parse_args(["--concurrency", "33"]))
+    args = vars(parser.parse_args())
+    await scrape(**args)
 
 
 if __name__ == "__main__":
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
 
