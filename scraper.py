@@ -17,6 +17,7 @@ from string import Template
 import aiohttp
 from furl import furl
 from rest_framework.parsers import JSONParser
+from typing import Any, List, Optional
 
 
 from hubster.models import GithubUser
@@ -26,7 +27,20 @@ USER_URL_BASE = "https://api.github.com/users"
 USER_REPO_TEMPLATE = Template("https://api.github.com/user/$user/repos")
 
 
-async def scrapeUsers(session: aiohttp.ClientSession, start_id: int = None) -> None:
+async def scrapeUserRepos(session: aiohttp.ClientSession, userJson: dict) -> None:
+    githubUser = GithubUserSerializer(data=userJson)
+    print(githubUser.is_valid())
+    print(githubUser.errors)
+    print(githubUser.validated_data)
+    print(f"name: ", githubUser.validated_data.get("login", ""))
+    response = githubUser.save()
+    print(f"response = {response}")
+    print("\n\n")
+
+
+async def scrapeUsers(
+    session: aiohttp.ClientSession, quantity: int, start_id: Optional[int] = None
+) -> List[Any]:
     if not start_id:
         maxId = GithubUser.objects.values("id").order_by("-id").first()
         startId = maxId.get("id") if maxId else None
@@ -35,22 +49,20 @@ async def scrapeUsers(session: aiohttp.ClientSession, start_id: int = None) -> N
 
     usersUrl = furl(USER_URL_BASE).add(queryArgs).url
     async with session.get(usersUrl) as resp:
-        # print(resp.status)
         users = json.loads(await resp.text())
-        for user in users:
-            githubUser = GithubUserSerializer(data=user)
-            print(githubUser.is_valid())
-            print(githubUser.errors)
-            print(githubUser.validated_data)
-            response = githubUser.save()
-            print(f"response = {response}")
-            print("\n\n")
+        return [
+            asyncio.create_task(scrapeUserRepos(session, user))
+            for user in users[:quantity]
+        ]
 
 
 async def scrape(
-    session: aiohttp.ClientSession, buffer: int, quantity: int, start_id: int = None
+    session: aiohttp.ClientSession,
+    buffer: int,
+    quantity: int,
+    start_id: Optional[int] = None,
 ) -> None:
-    await scrapeUsers(session, start_id)
+    await asyncio.gather(scrapeUsers(session, quantity, start_id))
 
 
 async def main(loop: asyncio.AbstractEventLoop) -> None:
