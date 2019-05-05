@@ -1,15 +1,23 @@
 #!/usr/bin/env python
-import argparse
-import asyncio
-from string import Template
 
-import aiohttp
+### Start: Initialize Django
 import django
 import os
-from furl import furl
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hubster.settings")
 django.setup()
+### End Initialize Django
+
+import argparse
+import asyncio
+import io
+import json
+from string import Template
+
+import aiohttp
+from furl import furl
+from rest_framework.parsers import JSONParser
+
 
 from hubster.models import GithubUser
 from hubster.serializers import GithubRepoSerializerWithId, GithubUserSerializer
@@ -27,8 +35,15 @@ async def scrapeUsers(session: aiohttp.ClientSession, startId: int = None) -> No
 
     usersUrl = furl(USER_URL_BASE).add(queryArgs).url
     async with session.get(usersUrl) as resp:
-        print(resp.status)
-        print(await resp.text())
+        # print(resp.status)
+        users = json.loads(await resp.text())
+        for i, user in enumerate(users):
+            print(i)
+            githubUser = GithubUserSerializer(data=user)
+            print(githubUser.is_valid())
+            print(githubUser.errors)
+            print(githubUser.validated_data)
+            print("\n\n")
 
 
 async def scrape(
