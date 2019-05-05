@@ -29,7 +29,7 @@ USER_REPO_TEMPLATE = Template("https://api.github.com/user/$user/repos")
 async def scrapeUsers(session: aiohttp.ClientSession, start_id: int = None) -> None:
     if not start_id:
         maxId = GithubUser.objects.values("id").order_by("-id").first()
-        startId = maxId.get("id")  # In case the
+        startId = maxId.get("id") if maxId else None
 
     queryArgs = {"since": startId} if start_id else {}
 
@@ -42,6 +42,8 @@ async def scrapeUsers(session: aiohttp.ClientSession, start_id: int = None) -> N
             print(githubUser.is_valid())
             print(githubUser.errors)
             print(githubUser.validated_data)
+            response = githubUser.save()
+            print(f"response = {response}")
             print("\n\n")
 
 
@@ -103,7 +105,7 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
 
 
 if __name__ == "__main__":
-    # GithubUser.objects.all().delete()
+    GithubUser.objects.all().delete()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop))
 

@@ -8,7 +8,7 @@ class GithubUser(models.Model):
     bio = models.TextField(blank=True)
     blog = models.URLField(blank=True)
     company = models.CharField(max_length=50, blank=True)
-    created_at = models.DateTimeField(blank=True)
+    created_at = models.DateTimeField(null=True)
     email = models.EmailField(blank=True)
     events_url = models.URLField()
     followers = models.IntegerField(default=0)
@@ -32,7 +32,7 @@ class GithubUser(models.Model):
     starred_url = models.URLField()
     subscriptions_url = models.URLField()
     type = models.CharField(max_length=32)
-    updated_at = models.DateTimeField(blank=True)
+    updated_at = models.DateTimeField(null=True)
     url = models.URLField()
 
 
