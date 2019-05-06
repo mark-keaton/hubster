@@ -79,7 +79,6 @@ class GithubRepo(models.Model):
     git_commits_url = models.URLField()
     git_refs_url = models.URLField()
     git_tags_url = models.URLField()
-    # TODO: Create Github URL field with validator
     git_url = models.CharField(max_length=200)
     has_downloads = models.BooleanField(default=False)
     has_issues = models.BooleanField(default=False)
