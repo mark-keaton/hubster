@@ -4,12 +4,12 @@ from django.test import TestCase
 from rest_framework.parsers import JSONParser
 from rest_framework.test import APIRequestFactory
 
-from hubster.models import GithubRepo, GithubUser
+from hubster.models import GithubRepo, GithubUser, License
 from hubster.serializers import GithubUserSerializer, GithubRepoSerializerWithId
 from scraper import build_license_dict
 
-factory = APIRequestFactory()
-request = factory.get("/repos/")
+# factory = APIRequestFactory()
+# request = factory.get("/repos/")
 
 repo_json = """
 {
@@ -90,7 +90,7 @@ repo_json = """
 """
 
 
-class GithubRepoSerializerWithIdTestCase(TestCase):
+class GithubRepoDeserializerWithIdTestCase(TestCase):
     def setUp(self):
         build_license_dict()
         GithubUser.objects.create(id=2)
@@ -106,3 +106,24 @@ class GithubRepoSerializerWithIdTestCase(TestCase):
         self.assertIsNotNone(repo)
         self.assertEqual(repo.id, 1413492)
 
+    def tearDown(self):
+        License.objects.all().delete()
+        GithubRepo.objects.get(id=1413492).delete()
+        GithubUser.objects.get(id=2).delete()
+
+
+class GithubRepoSerializerWithIdTestCase(TestCase):
+    def setUp(self):
+        build_license_dict()
+        GithubUser.objects.create(id=2)
+        repo_dict = json.loads(repo_json)
+        serializer = GithubRepoSerializerWithId(data=repo_dict)
+        repo = None
+        if serializer.is_valid():
+            repo = serializer.save()
+
+    def test_serializer(self):
+        repo_dict = json.loads(repo_json)
+        repo = GithubRepo.objects.get(id=1413492)
+        serializer = GithubRepoSerializerWithId(repo)
+        self.assertEqual(serializer.data, repo_dict)
