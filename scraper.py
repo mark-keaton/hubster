@@ -103,10 +103,7 @@ async def scrapeUsers(
 
 
 async def scrape(
-    session: aiohttp.ClientSession,
-    buffer: int,
-    quantity: int,
-    start_id: Optional[int] = None,
+    session: aiohttp.ClientSession, quantity: int, start_id: Optional[int] = None
 ) -> None:
     license_dict = build_license_dict()
     await asyncio.gather(scrapeUsers(session, license_dict, quantity, start_id))
@@ -123,15 +120,6 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
         default=5,
         type=int,
         help="Number of concurrent connections to scrape with",
-    )
-    parser.add_argument(
-        "-b",
-        "--buffer",
-        action="store",
-        dest="buffer",
-        default=20,
-        type=int,
-        help="Number of items to queue before writing to the database",
     )
     parser.add_argument(
         "-q",
@@ -159,10 +147,7 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
     )
     async with aiohttp.ClientSession(connector=conn, loop=loop, auth=auth) as session:
         await scrape(
-            session=session,
-            buffer=parsed.buffer,
-            quantity=parsed.quantity,
-            start_id=parsed.start_id,
+            session=session, quantity=parsed.quantity, start_id=parsed.start_id
         )
 
 
