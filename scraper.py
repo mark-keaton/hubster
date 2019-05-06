@@ -17,29 +17,73 @@ from string import Template
 import aiohttp
 from furl import furl
 from rest_framework.parsers import JSONParser
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 
-from hubster.models import GithubUser
+from hubster.models import GithubUser, GithubRepo, License
 from hubster.serializers import GithubRepoSerializerWithId, GithubUserSerializer
 
 USER_URL_BASE = "https://api.github.com/users"
-USER_REPO_TEMPLATE = Template("https://api.github.com/user/$user/repos")
+USER_REPO_TEMPLATE = Template("https://api.github.com/users/$user/repos")
 
 
-async def scrapeUserRepos(session: aiohttp.ClientSession, userJson: dict) -> None:
-    githubUser = GithubUserSerializer(data=userJson)
-    print(githubUser.is_valid())
-    print(githubUser.errors)
-    print(githubUser.validated_data)
-    print(f"name: ", githubUser.validated_data.get("login", ""))
-    response = githubUser.save()
-    print(f"response = {response}")
-    print("\n\n")
+def build_license_dict() -> Dict[str, int]:
+    licenses = License.objects.values("id", "key")
+    return {license["key"]: license["id"] for license in licenses}
+
+
+def flatten(t: list) -> list:
+    return [item for sublist in t for item in sublist]
+
+
+async def save_repo(
+    license_dict: Dict[str, int], user_id: int, repo_json: dict = {}
+) -> None:
+    license_key = repo_json.get("license", {}).get("key", "")
+    license_id = license_dict.get(license_key)
+    repo_json["owner"] = user_id
+    repo_json["license"] = license_id
+    githubRepo = GithubRepoSerializerWithId(data=repo_json)
+    if githubRepo.is_valid():
+        repo = githubRepo.save()
+    else:
+        print("Unable to save repo!")
+        print(f"Errors: {githubRepo.errors}")
+        print(f"Data was {githubRepo.validated_data}")
+        print("\n\n")
+
+
+async def scrapeUserRepos(
+    session: aiohttp.ClientSession, license_dict: Dict[str, int], user_json: dict
+) -> List[Any]:
+    github_user = GithubUserSerializer(data=user_json)
+    tasks: List = []
+    if github_user.is_valid():
+        user = github_user.save()
+        reposUrl = USER_REPO_TEMPLATE.substitute({"user": user.login})
+        async with session.get(reposUrl) as resp:
+            repos = json.loads(await resp.text())
+            print(f"repos: {repos}")
+            tasks.extend(
+                [
+                    asyncio.create_task(save_repo(license_dict, user.id, repo))
+                    for repo in repos
+                ]
+            )
+    else:
+        print("Unable to save user!")
+        print(f"Errors: {github_user.errors}")
+        print(f"Data was {github_user.validated_data}")
+        print("\n\n")
+
+    return tasks
 
 
 async def scrapeUsers(
-    session: aiohttp.ClientSession, quantity: int, start_id: Optional[int] = None
+    session: aiohttp.ClientSession,
+    license_dict: Dict[str, int],
+    quantity: int,
+    start_id: Optional[int] = None,
 ) -> List[Any]:
     if not start_id:
         maxId = GithubUser.objects.values("id").order_by("-id").first()
@@ -50,10 +94,12 @@ async def scrapeUsers(
     usersUrl = furl(USER_URL_BASE).add(queryArgs).url
     async with session.get(usersUrl) as resp:
         users = json.loads(await resp.text())
-        return [
-            asyncio.create_task(scrapeUserRepos(session, user))
-            for user in users[:quantity]
-        ]
+        return flatten(
+            [
+                await scrapeUserRepos(session, license_dict, user)
+                for user in users[:quantity]
+            ]
+        )
 
 
 async def scrape(
@@ -62,7 +108,8 @@ async def scrape(
     quantity: int,
     start_id: Optional[int] = None,
 ) -> None:
-    await asyncio.gather(scrapeUsers(session, quantity, start_id))
+    license_dict = build_license_dict()
+    await asyncio.gather(scrapeUsers(session, license_dict, quantity, start_id))
 
 
 async def main(loop: asyncio.AbstractEventLoop) -> None:
@@ -91,7 +138,7 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
         "--quantity",
         action="store",
         dest="quantity",
-        default=3,
+        default=1,
         type=int,
         help="Total number of users to scrape before quitting",
     )
@@ -107,7 +154,10 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
     parsed = parser.parse_args()
 
     conn = aiohttp.TCPConnector(limit=parsed.concurrency)
-    async with aiohttp.ClientSession(connector=conn, loop=loop) as session:
+    auth = aiohttp.BasicAuth(
+        login=os.environ.get("GITHUB_LOGIN"), password=os.environ.get("GITHUB_PASSWORD")
+    )
+    async with aiohttp.ClientSession(connector=conn, loop=loop, auth=auth) as session:
         await scrape(
             session=session,
             buffer=parsed.buffer,
@@ -118,6 +168,7 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
 
 if __name__ == "__main__":
     GithubUser.objects.all().delete()
+    GithubRepo.objects.all().delete()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop))
 
