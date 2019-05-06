@@ -13,6 +13,7 @@ class QuerysetFilterMixin:
     """
 
     def get_queryset(self):
+        queryset = super().get_queryset()
         Model = self.model
         fields = set([f.name for f in Model._meta.get_fields()])
 
@@ -22,14 +23,38 @@ class QuerysetFilterMixin:
             if any(key.startswith(field) for field in fields)
         }
 
-        queryset = self.queryset
         for key, value in filters.items():
             if value is not None:
                 queryset = queryset.filter(**{key: value})
         return queryset
 
 
-class GithubUserViewSet(QuerysetFilterMixin, viewsets.ModelViewSet):
+class QuerysetOrderByMixin:
+    """
+    Simple default queryset overriding to utilize
+    Django's built-in order by functionality.
+
+    Assumes 'model' is declared on the class.
+    """
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        Model = self.model
+        fields = set([f.name for f in Model._meta.get_fields()])
+
+        order_by_fields = self.request.query_params.get("order_by", [])
+        if type(order_by_fields) != list:
+            order_by_fields = [order_by_fields]
+
+        queryset = self.queryset
+        if order_by_fields:
+            queryset = queryset.order_by(*order_by_fields)
+        return queryset
+
+
+class GithubUserViewSet(
+    QuerysetFilterMixin, QuerysetOrderByMixin, viewsets.ModelViewSet
+):
     """
     View Github users.
     """
@@ -39,7 +64,9 @@ class GithubUserViewSet(QuerysetFilterMixin, viewsets.ModelViewSet):
     queryset = GithubUser.objects.all()
 
 
-class GithubRepoViewSet(QuerysetFilterMixin, viewsets.ModelViewSet):
+class GithubRepoViewSet(
+    QuerysetFilterMixin, QuerysetOrderByMixin, viewsets.ModelViewSet
+):
     """
     View Github repos.
     """
