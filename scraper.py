@@ -126,7 +126,7 @@ async def scrape(
     session: aiohttp.ClientSession, quantity: int, start_id: Optional[int] = None
 ) -> None:
     license_dict = build_license_dict()
-    # await asyncio.gather(scrapeUsers(session, license_dict, quantity, start_id))
+    await asyncio.gather(scrapeUsers(session, license_dict, quantity, start_id))
 
 
 async def main(loop: asyncio.AbstractEventLoop) -> None:
@@ -172,8 +172,6 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
 
 
 if __name__ == "__main__":
-    GithubUser.objects.all().delete()
-    GithubRepo.objects.all().delete()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main(loop))
 
