@@ -44,14 +44,15 @@ async def save_repo(
     license_id = license_dict.get(license_key, 13)  # Default to no-license selected
     repo_json["owner"] = user_id
     repo_json["license"] = license_id
-    githubRepo = GithubRepoSerializerWithId(data=repo_json)
-    if githubRepo.is_valid():
-        repo = githubRepo.save()
+    github_repo = GithubRepoSerializerWithId(data=repo_json, partial=True)
+    if github_repo.is_valid():
+        repo = github_repo.save()
     else:
+        error_dict = {key: repo_json[key] for key in github_repo.errors}
         print("Unable to save repo!")
-        print(f"Errors: {githubRepo.errors}")
-        print(f"Data was {githubRepo.validated_data}")
-        print("\n\n")
+        print(f"Errors: {github_repo.errors}")
+        print(f"Invalid data: {error_dict}")
+        print("\n")
 
 
 async def scrapeUserRepos(
@@ -61,20 +62,24 @@ async def scrapeUserRepos(
     tasks: List = []
     if github_user.is_valid():
         user = github_user.save()
-        reposUrl = USER_REPO_TEMPLATE.substitute({"user": user.login})
-        async with session.get(reposUrl) as resp:
-            repos = json.loads(await resp.text())
-            tasks.extend(
-                [
-                    asyncio.create_task(save_repo(license_dict, user.id, repo.copy()))
-                    for repo in repos
-                ]
-            )
+        repos_url = USER_REPO_TEMPLATE.substitute({"user": user.login})
+        while True:
+            async with session.get(repos_url) as resp:
+                if not resp.links.get("next") or not resp.links.get("next").get("url"):
+                    break
+                repos = json.loads(await resp.text())
+                tasks.extend(
+                    [
+                        asyncio.create_task(save_repo(license_dict, user.id, repo))
+                        for repo in repos
+                    ]
+                )
+            repos_url = resp.links.get("next").get("url")
     else:
         print("Unable to save user!")
         print(f"Errors: {github_user.errors}")
         print(f"Data was {github_user.validated_data}")
-        print("\n\n")
+        print("\n")
 
     return tasks
 
@@ -126,7 +131,7 @@ async def main(loop: asyncio.AbstractEventLoop) -> None:
         "--quantity",
         action="store",
         dest="quantity",
-        default=1,
+        default=2,
         type=int,
         help="Total number of users to scrape before quitting",
     )
