@@ -39,8 +39,9 @@ def flatten(t: list) -> list:
 async def save_repo(
     license_dict: Dict[str, int], user_id: int, repo_json: dict = {}
 ) -> None:
-    license_key = repo_json.get("license", {}).get("key", "")
-    license_id = license_dict.get(license_key)
+    license = repo_json.get("license")
+    license_key = license.get("key", "no-license") if license else "no-license"
+    license_id = license_dict.get(license_key, 13)  # Default to no-license selected
     repo_json["owner"] = user_id
     repo_json["license"] = license_id
     githubRepo = GithubRepoSerializerWithId(data=repo_json)
@@ -63,10 +64,9 @@ async def scrapeUserRepos(
         reposUrl = USER_REPO_TEMPLATE.substitute({"user": user.login})
         async with session.get(reposUrl) as resp:
             repos = json.loads(await resp.text())
-            print(f"repos: {repos}")
             tasks.extend(
                 [
-                    asyncio.create_task(save_repo(license_dict, user.id, repo))
+                    asyncio.create_task(save_repo(license_dict, user.id, repo.copy()))
                     for repo in repos
                 ]
             )
