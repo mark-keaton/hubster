@@ -1,0 +1,106 @@
+[
+  {
+    "id": 1,
+    "key": "agpl-3.0",
+    "name": "GNU Affero General Public License v3.0",
+    "node_id": "AGPL-3.0",
+    "url": "https://api.github.com/licenses/agpl-3.0",
+    "spdx_id": "MDc6TGljZW5zZTE="
+  },
+  {
+    "id": 2,
+    "key": "apache-2.0",
+    "name": "Apache License 2.0",
+    "node_id": "Apache-2.0",
+    "url": "https://api.github.com/licenses/apache-2.0",
+    "spdx_id": "MDc6TGljZW5zZTI="
+  },
+  {
+    "id": 3,
+    "key": "bsd-2-clause",
+    "name": "BSD 2-Clause \"Simplified\" License",
+    "node_id": "BSD-2-Clause",
+    "url": "https://api.github.com/licenses/bsd-2-clause",
+    "spdx_id": "MDc6TGljZW5zZTQ="
+  },
+  {
+    "id": 4,
+    "key": "bsd-3-clause",
+    "name": "BSD 3-Clause \"New\" or \"Revised\" License",
+    "node_id": "BSD-3-Clause",
+    "url": "https://api.github.com/licenses/bsd-3-clause",
+    "spdx_id": "MDc6TGljZW5zZTU="
+  },
+  {
+    "id": 5,
+    "key": "epl-2.0",
+    "name": "Eclipse Public License 2.0",
+    "node_id": "EPL-2.0",
+    "url": "https://api.github.com/licenses/epl-2.0",
+    "spdx_id": "MDc6TGljZW5zZTMy"
+  },
+  {
+    "id": 6,
+    "key": "gpl-2.0",
+    "name": "GNU General Public License v2.0",
+    "node_id": "GPL-2.0",
+    "url": "https://api.github.com/licenses/gpl-2.0",
+    "spdx_id": "MDc6TGljZW5zZTg="
+  },
+  {
+    "id": 7,
+    "key": "gpl-3.0",
+    "name": "GNU General Public License v3.0",
+    "node_id": "GPL-3.0",
+    "url": "https://api.github.com/licenses/gpl-3.0",
+    "spdx_id": "MDc6TGljZW5zZTk="
+  },
+  {
+    "id": 8,
+    "key": "lgpl-2.1",
+    "name": "GNU Lesser General Public License v2.1",
+    "node_id": "LGPL-2.1",
+    "url": "https://api.github.com/licenses/lgpl-2.1",
+    "spdx_id": "MDc6TGljZW5zZTEx"
+  },
+  {
+    "id": 9,
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0",
+    "node_id": "LGPL-3.0",
+    "url": "https://api.github.com/licenses/lgpl-3.0",
+    "spdx_id": "MDc6TGljZW5zZTEy"
+  },
+  {
+    "id": 10,
+    "key": "mit",
+    "name": "MIT License",
+    "node_id": "MIT",
+    "url": "https://api.github.com/licenses/mit",
+    "spdx_id": "MDc6TGljZW5zZTEz"
+  },
+  {
+    "id": 11,
+    "key": "mpl-2.0",
+    "name": "Mozilla Public License 2.0",
+    "node_id": "MPL-2.0",
+    "url": "https://api.github.com/licenses/mpl-2.0",
+    "spdx_id": "MDc6TGljZW5zZTE0"
+  },
+  {
+    "id": 12,
+    "key": "unlicense",
+    "name": "The Unlicense",
+    "node_id": "Unlicense",
+    "url": "https://api.github.com/licenses/unlicense",
+    "spdx_id": "MDc6TGljZW5zZTE1"
+  },
+  {
+    "id": 13,
+    "key": "no-license",
+    "name": "No license selected",
+    "node_id": "No-License",
+    "url": "https://api.github.com/licenses",
+    "spdx_id": "MDc6TGljZW5zZTE2"
+  }
+]

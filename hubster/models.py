@@ -37,11 +37,13 @@ class GithubUser(models.Model):
 
 
 class License(models.Model):
+    id = models.IntegerField(primary_key=True)
+
     key = models.CharField(max_length=50)
     name = models.CharField(max_length=50)
     node_id = models.CharField(max_length=32)
-    spdx_id = models.SlugField()
-    url = models.URLField()
+    spdx_id = models.CharField(max_length=32)
+    url = models.CharField(max_length=200)
 
 
 class Topic(models.Model):

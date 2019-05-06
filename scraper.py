@@ -12,6 +12,7 @@ import argparse
 import asyncio
 import io
 import json
+from pathlib import Path
 from string import Template
 
 import aiohttp
@@ -21,13 +22,27 @@ from typing import Any, Dict, List, Optional
 
 
 from hubster.models import GithubUser, GithubRepo, License
-from hubster.serializers import GithubRepoSerializerWithId, GithubUserSerializer
+from hubster.serializers import (
+    GithubRepoSerializerWithId,
+    GithubUserSerializer,
+    LicenseSerializer,
+)
 
 USER_URL_BASE = "https://api.github.com/users"
 USER_REPO_TEMPLATE = Template("https://api.github.com/users/$user/repos")
 
 
 def build_license_dict() -> Dict[str, int]:
+    licenses = License.objects.all()
+    if len(licenses) != 13:
+        licenses.delete()
+        with Path("licenses.json").open() as infile:
+            license_list = json.loads(infile.read())
+            for license in license_list:
+                serializer = LicenseSerializer(data=license)
+                serializer.is_valid()
+                serializer.save()
+
     licenses = License.objects.values("id", "key")
     return {license["key"]: license["id"] for license in licenses}
 
@@ -111,7 +126,7 @@ async def scrape(
     session: aiohttp.ClientSession, quantity: int, start_id: Optional[int] = None
 ) -> None:
     license_dict = build_license_dict()
-    await asyncio.gather(scrapeUsers(session, license_dict, quantity, start_id))
+    # await asyncio.gather(scrapeUsers(session, license_dict, quantity, start_id))
 
 
 async def main(loop: asyncio.AbstractEventLoop) -> None:
