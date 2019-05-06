@@ -17,7 +17,6 @@ from string import Template
 
 import aiohttp
 from furl import furl
-from rest_framework.parsers import JSONParser
 from typing import Any, Dict, List, Optional
 
 
