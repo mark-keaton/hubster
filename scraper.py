@@ -105,13 +105,13 @@ async def scrapeUsers(
     start_id: Optional[int] = None,
 ) -> List[Any]:
     if not start_id:
-        maxId = GithubUser.objects.values("id").order_by("-id").first()
-        startId = maxId.get("id") if maxId else None
+        max_id = GithubUser.objects.values("id").order_by("-id").first()
+        start_id = max_id.get("id") if max_id else None
 
-    queryArgs = {"since": startId} if start_id else {}
+    query_args = {"since": start_id} if start_id else {}
 
-    usersUrl = furl(USER_URL_BASE).add(queryArgs).url
-    async with session.get(usersUrl) as resp:
+    users_url = furl(USER_URL_BASE).add(query_args).url
+    async with session.get(users_url) as resp:
         users = json.loads(await resp.text())
         return flatten(
             [
